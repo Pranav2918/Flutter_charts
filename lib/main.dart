@@ -1,3 +1,4 @@
+import 'package:barchart_app/screens/bar_chart.dart';
 import 'package:barchart_app/screens/barchart_impl.dart';
 import 'package:flutter/material.dart';
 
@@ -10,8 +11,8 @@ class MyChartApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: BarchartImpl(),
+    return const MaterialApp(
+      home: BarChart(),
     );
   }
 }
