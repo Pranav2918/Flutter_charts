@@ -1,5 +1,7 @@
 import 'package:barchart_app/model/gender_model.dart';
 import 'package:barchart_app/network/network_helper.dart';
+import 'package:barchart_app/utils/custom_painter.dart';
+import 'package:charts_flutter/flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 
@@ -14,8 +16,7 @@ class _BarChartState extends State<BarChart> {
 
   List<GenderModel> genderList = [];
   bool isLoading = true;
-  NetworkHelper _networkHelper = NetworkHelper();
-
+  final NetworkHelper _networkHelper = NetworkHelper();
 
   @override
   void initState() {
@@ -24,8 +25,9 @@ class _BarChartState extends State<BarChart> {
   }
 
   void getGenderData() async {
-    var response = await _networkHelper.get("https://api.genderize.io/?name[]=Thor&name[]=Tonny&name[]=Hulk&name[]=Pranav&name[]=Maeve");
-    print("Res ${response.body}");
+    var response = await _networkHelper.get(
+        "https://api.genderize.io/?name[]=Thor&name[]=Tonny&name[]=Hulk&name[]=Pranav&name[]=Maeve");
+    print("Response: ${response.body}");
     List<GenderModel> tempData = genderModelFromJson(response.body);
     setState(() {
       genderList = tempData;
@@ -38,7 +40,7 @@ class _BarChartState extends State<BarChart> {
       charts.Series<GenderModel, String>(
         data: genderList,
         id: 'gender',
-        colorFn: (_, __) => charts.MaterialPalette.teal.shadeDefault,
+        colorFn: (_, __) => charts.MaterialPalette.blue.shadeDefault,
         domainFn: (GenderModel genderModel, _) => genderModel.name,
         measureFn: (GenderModel genderModel, _) => genderModel.count,
       )
@@ -49,14 +51,30 @@ class _BarChartState extends State<BarChart> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Bar Chart With API"),
+        title: const Text("Bar Chart With API"),
       ),
       body: Center(
         child: isLoading
-            ? CircularProgressIndicator()
-            : Container(
+            ? const CircularProgressIndicator()
+            : SizedBox(
                 height: 300,
                 child: charts.BarChart(
+                  behaviors: [
+                    LinePointHighlighter(
+                        symbolRenderer:
+                            CustomCircleSymbolRenderer()
+                        )
+                  ],
+                  selectionModels: [
+                    SelectionModelConfig(
+                        changedListener: (SelectionModel model) {
+                      if (model.hasDatumSelection) {
+                        final value = model.selectedSeries[0]
+                            .measureFn(model.selectedDatum[0].index);
+                        CustomCircleSymbolRenderer.value = value.toString(); // paints the tapped value
+                      }
+                    })
+                  ],
                   generateData(),
                   animate: true,
                 ),
